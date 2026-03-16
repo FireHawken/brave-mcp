@@ -1,0 +1,17 @@
+{
+  "name": "@brave-mcp/extension",
+  "version": "0.10.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "npm run build -w @brave-mcp/protocol && node build.mjs",
+    "verify": "npm run build"
+  },
+  "dependencies": {
+    "@brave-mcp/protocol": "file:../../packages/protocol"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.1",
+    "typescript": "^5.8.2"
+  }
+}

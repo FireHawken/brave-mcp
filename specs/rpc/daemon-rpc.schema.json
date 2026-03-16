@@ -1,0 +1,186 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://brave-mcp.dev/schemas/daemon-rpc.schema.json",
+  "title": "Brave MCP Daemon RPC",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "request",
+    "response"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "0.10.0"
+    },
+    "request": {
+      "$ref": "#/definitions/DaemonRequest",
+      "definitions": {
+        "DaemonRequest": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "minLength": 1
+            },
+            "method": {
+              "type": "string",
+              "enum": [
+                "tabs.list",
+                "windows.list",
+                "tabs.getActive",
+                "tabs.getInfo",
+                "windows.getInfo",
+                "tabs.open",
+                "windows.create",
+                "tabs.close",
+                "windows.close",
+                "tabs.navigate",
+                "tabs.reload",
+                "tabs.back",
+                "tabs.forward",
+                "tabs.waitForNavigation",
+                "tabs.switch",
+                "tabs.focus",
+                "tabs.setViewport",
+                "dom.click",
+                "dom.hover",
+                "dom.type",
+                "dom.selectOption",
+                "dom.scrollTo",
+                "dom.dragAndDrop",
+                "dom.uploadFiles",
+                "input.pressKey",
+                "dom.waitForSelector",
+                "dom.getVisibleText",
+                "dom.getHtml",
+                "dom.querySelector",
+                "dom.queryElements",
+                "dom.elementsFromPoint",
+                "page.downloadAsset",
+                "page.capturePdf",
+                "page.captureScreenshot",
+                "page.getConsoleLogs",
+                "page.networkLog",
+                "storage.cookieAccess",
+                "network.requestIntercept",
+                "network.mockResponse",
+                "network.throttle",
+                "storage.clear",
+                "session.export",
+                "page.setUserAgent",
+                "page.emulateMedia",
+                "browser.grantPermissions",
+                "page.exportHar",
+                "page.waitForIdle",
+                "page.executeJavaScript"
+              ]
+            },
+            "params": {
+              "type": "object",
+              "additionalProperties": {},
+              "default": {}
+            },
+            "authToken": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [
+            "id",
+            "method",
+            "authToken"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    },
+    "response": {
+      "$ref": "#/definitions/DaemonResponse",
+      "definitions": {
+        "DaemonResponse": {
+          "anyOf": [
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "ok": {
+                  "type": "boolean",
+                  "const": true
+                },
+                "result": {
+                  "type": "object",
+                  "additionalProperties": {}
+                }
+              },
+              "required": [
+                "id",
+                "ok",
+                "result"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "ok": {
+                  "type": "boolean",
+                  "const": false
+                },
+                "error": {
+                  "type": "object",
+                  "properties": {
+                    "code": {
+                      "type": "string",
+                      "enum": [
+                        "BRAVE_AUTH_REQUIRED",
+                        "BRAVE_EXTENSION_OFFLINE",
+                        "BRAVE_TAB_NOT_FOUND",
+                        "BRAVE_SELECTOR_NOT_FOUND",
+                        "BRAVE_TIMEOUT",
+                        "BRAVE_PERMISSION_DENIED",
+                        "BRAVE_INTERNAL_ERROR"
+                      ]
+                    },
+                    "message": {
+                      "type": "string"
+                    },
+                    "retryable": {
+                      "type": "boolean"
+                    },
+                    "details": {
+                      "type": "object",
+                      "additionalProperties": {}
+                    }
+                  },
+                  "required": [
+                    "code",
+                    "message",
+                    "retryable"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "id",
+                "ok",
+                "error"
+              ],
+              "additionalProperties": false
+            }
+          ]
+        }
+      },
+      "$schema": "http://json-schema.org/draft-07/schema#"
+    }
+  }
+}

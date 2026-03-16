@@ -1,0 +1,4030 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://brave-mcp.dev/schemas/brave-tools.schema.json",
+  "title": "Brave MCP Tool Catalog",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "version",
+    "tools"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "const": "0.10.0"
+    },
+    "tools": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/tool"
+      }
+    }
+  },
+  "$defs": {
+    "tool": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "description",
+        "mutationLevel",
+        "capabilities",
+        "inputSchema",
+        "outputSchema"
+      ],
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "mutationLevel": {
+          "type": "string",
+          "enum": [
+            "read",
+            "write"
+          ]
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "inputSchema": {
+          "type": "object"
+        },
+        "outputSchema": {
+          "type": "object"
+        }
+      }
+    }
+  },
+  "tools": [
+    {
+      "name": "list_tabs",
+      "description": "List open Brave tabs known to the extension.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "tabs"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/list_tabsInput",
+        "definitions": {
+          "list_tabsInput": {
+            "type": "object",
+            "properties": {
+              "windowId": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/list_tabsOutput",
+        "definitions": {
+          "list_tabsOutput": {
+            "type": "object",
+            "properties": {
+              "tabs": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "tabId": {
+                      "type": "integer"
+                    },
+                    "windowId": {
+                      "type": "integer"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "active": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "tabId",
+                    "windowId",
+                    "title",
+                    "url",
+                    "active"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "tabs"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "list_windows",
+      "description": "List Brave browser windows.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "windows"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/list_windowsInput",
+        "definitions": {
+          "list_windowsInput": {
+            "type": "object",
+            "properties": {
+              "populateTabs": {
+                "type": "boolean",
+                "default": true
+              },
+              "windowTypes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "normal",
+                    "popup"
+                  ]
+                },
+                "default": [
+                  "normal",
+                  "popup"
+                ]
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/list_windowsOutput",
+        "definitions": {
+          "list_windowsOutput": {
+            "type": "object",
+            "properties": {
+              "windows": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "windowId": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "focused": {
+                      "type": "boolean"
+                    },
+                    "incognito": {
+                      "type": "boolean"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "normal",
+                        "popup"
+                      ]
+                    },
+                    "top": {
+                      "type": "integer"
+                    },
+                    "left": {
+                      "type": "integer"
+                    },
+                    "width": {
+                      "type": "integer"
+                    },
+                    "height": {
+                      "type": "integer"
+                    },
+                    "tabIds": {
+                      "type": "array",
+                      "items": {
+                        "type": "integer"
+                      }
+                    }
+                  },
+                  "required": [
+                    "windowId",
+                    "focused",
+                    "incognito",
+                    "type",
+                    "tabIds"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "windows"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "get_active_tab",
+      "description": "Return the active tab for the current Brave window.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "tabs"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/get_active_tabInput",
+        "definitions": {
+          "get_active_tabInput": {
+            "type": "object",
+            "properties": {
+              "windowId": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/get_active_tabOutput",
+        "definitions": {
+          "get_active_tabOutput": {
+            "type": "object",
+            "properties": {
+              "tab": {
+                "type": "object",
+                "properties": {
+                  "tabId": {
+                    "type": "integer"
+                  },
+                  "windowId": {
+                    "type": "integer"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "tabId",
+                  "windowId",
+                  "title",
+                  "url",
+                  "active"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "tab"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "get_tab_info",
+      "description": "Return detailed information for a Brave tab.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "tabs"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/get_tab_infoInput",
+        "definitions": {
+          "get_tab_infoInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/get_tab_infoOutput",
+        "definitions": {
+          "get_tab_infoOutput": {
+            "type": "object",
+            "properties": {
+              "tab": {
+                "type": "object",
+                "properties": {
+                  "tabId": {
+                    "type": "integer"
+                  },
+                  "windowId": {
+                    "type": "integer"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "active": {
+                    "type": "boolean"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "loading",
+                      "complete"
+                    ]
+                  },
+                  "favIconUrl": {
+                    "type": "string"
+                  },
+                  "audible": {
+                    "type": "boolean"
+                  },
+                  "discarded": {
+                    "type": "boolean"
+                  },
+                  "pinned": {
+                    "type": "boolean"
+                  },
+                  "incognito": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "tabId",
+                  "windowId",
+                  "title",
+                  "url",
+                  "active"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "tab"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "get_window_info",
+      "description": "Return detailed information for a Brave window.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "windows"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/get_window_infoInput",
+        "definitions": {
+          "get_window_infoInput": {
+            "type": "object",
+            "properties": {
+              "windowId": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "populateTabs": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "required": [
+              "windowId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/get_window_infoOutput",
+        "definitions": {
+          "get_window_infoOutput": {
+            "type": "object",
+            "properties": {
+              "window": {
+                "type": "object",
+                "properties": {
+                  "windowId": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "focused": {
+                    "type": "boolean"
+                  },
+                  "incognito": {
+                    "type": "boolean"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "normal",
+                      "popup"
+                    ]
+                  },
+                  "top": {
+                    "type": "integer"
+                  },
+                  "left": {
+                    "type": "integer"
+                  },
+                  "width": {
+                    "type": "integer"
+                  },
+                  "height": {
+                    "type": "integer"
+                  },
+                  "tabIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "required": [
+                  "windowId",
+                  "focused",
+                  "incognito",
+                  "type",
+                  "tabIds"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "window"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "open_tab",
+      "description": "Open a new tab at a URL and optionally activate it.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "tabs",
+        "navigation"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/open_tabInput",
+        "definitions": {
+          "open_tabInput": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "active": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "required": [
+              "url"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/open_tabOutput",
+        "definitions": {
+          "open_tabOutput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "new_window",
+      "description": "Open a new Brave window and optionally navigate it.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "windows",
+        "navigation"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/new_windowInput",
+        "definitions": {
+          "new_windowInput": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "focused": {
+                "type": "boolean",
+                "default": true
+              },
+              "incognito": {
+                "type": "boolean",
+                "default": false
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "normal",
+                  "popup"
+                ],
+                "default": "normal"
+              },
+              "top": {
+                "type": "integer"
+              },
+              "left": {
+                "type": "integer"
+              },
+              "width": {
+                "type": "integer",
+                "exclusiveMinimum": 0
+              },
+              "height": {
+                "type": "integer",
+                "exclusiveMinimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/new_windowOutput",
+        "definitions": {
+          "new_windowOutput": {
+            "type": "object",
+            "properties": {
+              "window": {
+                "type": "object",
+                "properties": {
+                  "windowId": {
+                    "type": "integer",
+                    "minimum": 0
+                  },
+                  "focused": {
+                    "type": "boolean"
+                  },
+                  "incognito": {
+                    "type": "boolean"
+                  },
+                  "type": {
+                    "type": "string",
+                    "enum": [
+                      "normal",
+                      "popup"
+                    ]
+                  },
+                  "top": {
+                    "type": "integer"
+                  },
+                  "left": {
+                    "type": "integer"
+                  },
+                  "width": {
+                    "type": "integer"
+                  },
+                  "height": {
+                    "type": "integer"
+                  },
+                  "tabIds": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "required": [
+                  "windowId",
+                  "focused",
+                  "incognito",
+                  "type",
+                  "tabIds"
+                ],
+                "additionalProperties": false
+              },
+              "tab": {
+                "type": "object",
+                "properties": {
+                  "tabId": {
+                    "$ref": "#/definitions/new_windowOutput/properties/window/properties/tabIds/items"
+                  },
+                  "windowId": {
+                    "type": "integer"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "tabId",
+                  "windowId",
+                  "title",
+                  "url",
+                  "active"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "window"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "close_tab",
+      "description": "Close an open tab.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "tabs"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/close_tabInput",
+        "definitions": {
+          "close_tabInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/close_tabOutput",
+        "definitions": {
+          "close_tabOutput": {
+            "type": "object",
+            "properties": {
+              "closed": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "closed"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "close_window",
+      "description": "Close an open Brave window.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "windows"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/close_windowInput",
+        "definitions": {
+          "close_windowInput": {
+            "type": "object",
+            "properties": {
+              "windowId": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "windowId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/close_windowOutput",
+        "definitions": {
+          "close_windowOutput": {
+            "type": "object",
+            "properties": {
+              "closed": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "closed"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "navigate",
+      "description": "Navigate an existing tab to a URL.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "navigation"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/navigateInput",
+        "definitions": {
+          "navigateInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "waitUntil": {
+                "type": "string",
+                "enum": [
+                  "load",
+                  "domcontentloaded",
+                  "networkidle"
+                ],
+                "default": "load"
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 15000
+              }
+            },
+            "required": [
+              "tabId",
+              "url"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/navigateOutput",
+        "definitions": {
+          "navigateOutput": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "timeout"
+                ]
+              }
+            },
+            "required": [
+              "url",
+              "status"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "reload_tab",
+      "description": "Reload a tab and wait for a target readiness state.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "navigation"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/reload_tabInput",
+        "definitions": {
+          "reload_tabInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "bypassCache": {
+                "type": "boolean",
+                "default": false
+              },
+              "waitUntil": {
+                "type": "string",
+                "enum": [
+                  "load",
+                  "domcontentloaded",
+                  "networkidle"
+                ],
+                "default": "load"
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 15000
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/reload_tabOutput",
+        "definitions": {
+          "reload_tabOutput": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "timeout"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "back",
+      "description": "Navigate a tab backward in its history.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "navigation",
+        "history"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/backInput",
+        "definitions": {
+          "backInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "waitUntil": {
+                "type": "string",
+                "enum": [
+                  "load",
+                  "domcontentloaded",
+                  "networkidle"
+                ],
+                "default": "load"
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 15000
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/backOutput",
+        "definitions": {
+          "backOutput": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "timeout"
+                ]
+              }
+            },
+            "required": [
+              "url",
+              "status"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "forward",
+      "description": "Navigate a tab forward in its history.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "navigation",
+        "history"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/forwardInput",
+        "definitions": {
+          "forwardInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "waitUntil": {
+                "type": "string",
+                "enum": [
+                  "load",
+                  "domcontentloaded",
+                  "networkidle"
+                ],
+                "default": "load"
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 15000
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/forwardOutput",
+        "definitions": {
+          "forwardOutput": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "timeout"
+                ]
+              }
+            },
+            "required": [
+              "url",
+              "status"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "wait_for_navigation",
+      "description": "Wait for navigation to complete in a Brave tab.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "navigation",
+        "timing"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/wait_for_navigationInput",
+        "definitions": {
+          "wait_for_navigationInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "waitUntil": {
+                "type": "string",
+                "enum": [
+                  "load",
+                  "domcontentloaded",
+                  "networkidle"
+                ],
+                "default": "load"
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 15000
+              },
+              "urlIncludes": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/wait_for_navigationOutput",
+        "definitions": {
+          "wait_for_navigationOutput": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "timeout"
+                ]
+              }
+            },
+            "required": [
+              "url",
+              "status"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "switch_to_tab",
+      "description": "Activate an existing Brave tab by id or by a URL/title match.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "tabs",
+        "navigation"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/switch_to_tabInput",
+        "definitions": {
+          "switch_to_tabInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "urlIncludes": {
+                "type": "string",
+                "minLength": 1
+              },
+              "titleIncludes": {
+                "type": "string",
+                "minLength": 1
+              },
+              "windowId": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/switch_to_tabOutput",
+        "definitions": {
+          "switch_to_tabOutput": {
+            "type": "object",
+            "properties": {
+              "tab": {
+                "type": "object",
+                "properties": {
+                  "tabId": {
+                    "type": "integer"
+                  },
+                  "windowId": {
+                    "type": "integer"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "tabId",
+                  "windowId",
+                  "title",
+                  "url",
+                  "active"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "tab"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "focus_tab",
+      "description": "Focus an existing Brave tab by id.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "tabs",
+        "navigation"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/focus_tabInput",
+        "definitions": {
+          "focus_tabInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/focus_tabOutput",
+        "definitions": {
+          "focus_tabOutput": {
+            "type": "object",
+            "properties": {
+              "tab": {
+                "type": "object",
+                "properties": {
+                  "tabId": {
+                    "type": "integer"
+                  },
+                  "windowId": {
+                    "type": "integer"
+                  },
+                  "title": {
+                    "type": "string"
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "tabId",
+                  "windowId",
+                  "title",
+                  "url",
+                  "active"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "tab"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "set_viewport",
+      "description": "Resize the containing window to target a viewport size.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "windows",
+        "navigation"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/set_viewportInput",
+        "definitions": {
+          "set_viewportInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "width": {
+                "type": "integer",
+                "exclusiveMinimum": 0
+              },
+              "height": {
+                "type": "integer",
+                "exclusiveMinimum": 0
+              },
+              "left": {
+                "type": "integer"
+              },
+              "top": {
+                "type": "integer"
+              },
+              "focused": {
+                "type": "boolean",
+                "default": true
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 3000
+              }
+            },
+            "required": [
+              "tabId",
+              "width",
+              "height"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/set_viewportOutput",
+        "definitions": {
+          "set_viewportOutput": {
+            "type": "object",
+            "properties": {
+              "windowId": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "viewportWidth": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "viewportHeight": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "windowId",
+              "viewportWidth",
+              "viewportHeight"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "click",
+      "description": "Click an element in the page.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "dom",
+        "input"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/clickInput",
+        "definitions": {
+          "clickInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "selector": {
+                "type": "string",
+                "minLength": 1
+              },
+              "selectorType": {
+                "type": "string",
+                "enum": [
+                  "css",
+                  "xpath",
+                  "text"
+                ],
+                "default": "css"
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 10000
+              }
+            },
+            "required": [
+              "tabId",
+              "selector"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/clickOutput",
+        "definitions": {
+          "clickOutput": {
+            "type": "object",
+            "properties": {
+              "clicked": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "clicked"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "hover",
+      "description": "Hover over an element in the page.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "dom",
+        "input"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/hoverInput",
+        "definitions": {
+          "hoverInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "selector": {
+                "type": "string",
+                "minLength": 1
+              },
+              "selectorType": {
+                "type": "string",
+                "enum": [
+                  "css",
+                  "xpath",
+                  "text"
+                ],
+                "default": "css"
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 10000
+              }
+            },
+            "required": [
+              "tabId",
+              "selector"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/hoverOutput",
+        "definitions": {
+          "hoverOutput": {
+            "type": "object",
+            "properties": {
+              "hovered": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "hovered"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "type_text",
+      "description": "Type text into a focused or selected element.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "dom",
+        "input"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/type_textInput",
+        "definitions": {
+          "type_textInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "selector": {
+                "type": "string",
+                "minLength": 1
+              },
+              "selectorType": {
+                "type": "string",
+                "enum": [
+                  "css",
+                  "xpath",
+                  "text"
+                ],
+                "default": "css"
+              },
+              "text": {
+                "type": "string"
+              },
+              "clearFirst": {
+                "type": "boolean",
+                "default": false
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 10000
+              }
+            },
+            "required": [
+              "tabId",
+              "selector",
+              "text"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/type_textOutput",
+        "definitions": {
+          "type_textOutput": {
+            "type": "object",
+            "properties": {
+              "typed": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "typed"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "select_option",
+      "description": "Select an option in a page dropdown element.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "dom",
+        "input"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/select_optionInput",
+        "definitions": {
+          "select_optionInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "selector": {
+                "type": "string",
+                "minLength": 1
+              },
+              "selectorType": {
+                "type": "string",
+                "enum": [
+                  "css",
+                  "xpath",
+                  "text"
+                ],
+                "default": "css"
+              },
+              "value": {
+                "type": "string"
+              },
+              "label": {
+                "type": "string"
+              },
+              "index": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 10000
+              }
+            },
+            "required": [
+              "tabId",
+              "selector"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/select_optionOutput",
+        "definitions": {
+          "select_optionOutput": {
+            "type": "object",
+            "properties": {
+              "selected": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "selected"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "press_key",
+      "description": "Press a keyboard key in the page context.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "input"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/press_keyInput",
+        "definitions": {
+          "press_keyInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "key": {
+                "type": "string",
+                "minLength": 1
+              },
+              "modifiers": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "Alt",
+                    "Control",
+                    "Meta",
+                    "Shift"
+                  ]
+                },
+                "default": []
+              }
+            },
+            "required": [
+              "tabId",
+              "key"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/press_keyOutput",
+        "definitions": {
+          "press_keyOutput": {
+            "type": "object",
+            "properties": {
+              "pressed": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "pressed"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "wait_for_selector",
+      "description": "Wait for an element to appear or become visible.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "dom",
+        "timing"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/wait_for_selectorInput",
+        "definitions": {
+          "wait_for_selectorInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "selector": {
+                "type": "string",
+                "minLength": 1
+              },
+              "selectorType": {
+                "type": "string",
+                "enum": [
+                  "css",
+                  "xpath",
+                  "text"
+                ],
+                "default": "css"
+              },
+              "state": {
+                "type": "string",
+                "enum": [
+                  "attached",
+                  "visible"
+                ],
+                "default": "visible"
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 10000
+              }
+            },
+            "required": [
+              "tabId",
+              "selector"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/wait_for_selectorOutput",
+        "definitions": {
+          "wait_for_selectorOutput": {
+            "type": "object",
+            "properties": {
+              "found": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "found"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "get_visible_text",
+      "description": "Extract visible text from the page or a scoped element.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "dom",
+        "content"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/get_visible_textInput",
+        "definitions": {
+          "get_visible_textInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "selector": {
+                "type": "string",
+                "minLength": 1
+              },
+              "selectorType": {
+                "type": "string",
+                "enum": [
+                  "css",
+                  "xpath",
+                  "text"
+                ],
+                "default": "css"
+              },
+              "maxChars": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "default": 12000
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/get_visible_textOutput",
+        "definitions": {
+          "get_visible_textOutput": {
+            "type": "object",
+            "properties": {
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "text"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "get_dom",
+      "description": "Extract serialized HTML from the page or a scoped element.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "dom",
+        "content"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/get_domInput",
+        "definitions": {
+          "get_domInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "selector": {
+                "type": "string",
+                "minLength": 1
+              },
+              "selectorType": {
+                "type": "string",
+                "enum": [
+                  "css",
+                  "xpath",
+                  "text"
+                ],
+                "default": "css"
+              },
+              "maxChars": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "default": 50000
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/get_domOutput",
+        "definitions": {
+          "get_domOutput": {
+            "type": "object",
+            "properties": {
+              "html": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "html"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "query_selector",
+      "description": "Inspect a single matched element and return useful metadata.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "dom"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/query_selectorInput",
+        "definitions": {
+          "query_selectorInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "selector": {
+                "type": "string",
+                "minLength": 1
+              },
+              "selectorType": {
+                "type": "string",
+                "enum": [
+                  "css",
+                  "xpath",
+                  "text"
+                ],
+                "default": "css"
+              }
+            },
+            "required": [
+              "tabId",
+              "selector"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/query_selectorOutput",
+        "definitions": {
+          "query_selectorOutput": {
+            "type": "object",
+            "properties": {
+              "found": {
+                "type": "boolean"
+              },
+              "element": {
+                "type": "object",
+                "properties": {
+                  "tagName": {
+                    "type": "string"
+                  },
+                  "text": {
+                    "type": "string"
+                  },
+                  "value": {
+                    "type": "string"
+                  },
+                  "href": {
+                    "type": "string"
+                  },
+                  "visible": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "found"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "query_elements",
+      "description": "Inspect multiple matched elements and return useful metadata.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "dom"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/query_elementsInput",
+        "definitions": {
+          "query_elementsInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "selector": {
+                "type": "string",
+                "minLength": 1
+              },
+              "selectorType": {
+                "type": "string",
+                "enum": [
+                  "css",
+                  "xpath",
+                  "text"
+                ],
+                "default": "css"
+              },
+              "limit": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 100,
+                "default": 25
+              }
+            },
+            "required": [
+              "tabId",
+              "selector"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/query_elementsOutput",
+        "definitions": {
+          "query_elementsOutput": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "elements": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "tagName": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    },
+                    "href": {
+                      "type": "string"
+                    },
+                    "visible": {
+                      "type": "boolean"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "count",
+              "elements"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "elements_from_point",
+      "description": "Return the DOM elements stacked at viewport coordinates.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "dom"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/elements_from_pointInput",
+        "definitions": {
+          "elements_from_pointInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "limit": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 100,
+                "default": 10
+              }
+            },
+            "required": [
+              "tabId",
+              "x",
+              "y"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/elements_from_pointOutput",
+        "definitions": {
+          "elements_from_pointOutput": {
+            "type": "object",
+            "properties": {
+              "count": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "elements": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "tagName": {
+                      "type": "string"
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    },
+                    "href": {
+                      "type": "string"
+                    },
+                    "visible": {
+                      "type": "boolean"
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "count",
+              "elements"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "scroll_to",
+      "description": "Scroll the page to a selector or viewport coordinates.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "dom",
+        "navigation"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/scroll_toInput",
+        "definitions": {
+          "scroll_toInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "selector": {
+                "type": "string",
+                "minLength": 1
+              },
+              "selectorType": {
+                "type": "string",
+                "enum": [
+                  "css",
+                  "xpath",
+                  "text"
+                ],
+                "default": "css"
+              },
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              },
+              "behavior": {
+                "type": "string",
+                "enum": [
+                  "auto",
+                  "smooth"
+                ],
+                "default": "auto"
+              },
+              "block": {
+                "type": "string",
+                "enum": [
+                  "start",
+                  "center",
+                  "end",
+                  "nearest"
+                ],
+                "default": "center"
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 10000
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/scroll_toOutput",
+        "definitions": {
+          "scroll_toOutput": {
+            "type": "object",
+            "properties": {
+              "scrolled": {
+                "type": "boolean"
+              },
+              "x": {
+                "type": "number"
+              },
+              "y": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "scrolled",
+              "x",
+              "y"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "drag_and_drop",
+      "description": "Drag one page element and drop it onto another element.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "dom",
+        "input"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/drag_and_dropInput",
+        "definitions": {
+          "drag_and_dropInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "selector": {
+                "type": "string",
+                "minLength": 1
+              },
+              "selectorType": {
+                "type": "string",
+                "enum": [
+                  "css",
+                  "xpath",
+                  "text"
+                ],
+                "default": "css"
+              },
+              "targetSelector": {
+                "type": "string",
+                "minLength": 1
+              },
+              "targetSelectorType": {
+                "$ref": "#/definitions/drag_and_dropInput/properties/selectorType",
+                "default": "css"
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 10000
+              }
+            },
+            "required": [
+              "tabId",
+              "selector",
+              "targetSelector"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/drag_and_dropOutput",
+        "definitions": {
+          "drag_and_dropOutput": {
+            "type": "object",
+            "properties": {
+              "dropped": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "dropped"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "upload_file",
+      "description": "Upload one or more in-memory files to a page file input.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "dom",
+        "input",
+        "files"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/upload_fileInput",
+        "definitions": {
+          "upload_fileInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "selector": {
+                "type": "string",
+                "minLength": 1
+              },
+              "selectorType": {
+                "type": "string",
+                "enum": [
+                  "css",
+                  "xpath",
+                  "text"
+                ],
+                "default": "css"
+              },
+              "files": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "mimeType": {
+                      "type": "string",
+                      "minLength": 1,
+                      "default": "application/octet-stream"
+                    },
+                    "base64": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "lastModified": {
+                      "type": "integer",
+                      "minimum": 0
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "base64"
+                  ],
+                  "additionalProperties": false
+                },
+                "minItems": 1,
+                "maxItems": 10
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 10000
+              }
+            },
+            "required": [
+              "tabId",
+              "selector",
+              "files"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/upload_fileOutput",
+        "definitions": {
+          "upload_fileOutput": {
+            "type": "object",
+            "properties": {
+              "uploaded": {
+                "type": "boolean"
+              },
+              "fileCount": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "uploaded",
+              "fileCount"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "download_asset",
+      "description": "Download an asset by URL through the Brave companion.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "network",
+        "files"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/download_assetInput",
+        "definitions": {
+          "download_assetInput": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string",
+                "minLength": 1
+              },
+              "tabId": {
+                "type": "integer"
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 15000
+              },
+              "maxBytes": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "default": 2000000
+              }
+            },
+            "required": [
+              "url"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/download_assetOutput",
+        "definitions": {
+          "download_assetOutput": {
+            "type": "object",
+            "properties": {
+              "finalUrl": {
+                "type": "string"
+              },
+              "mimeType": {
+                "type": "string"
+              },
+              "base64": {
+                "type": "string"
+              },
+              "sizeBytes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "too_large"
+                ]
+              }
+            },
+            "required": [
+              "finalUrl",
+              "mimeType",
+              "base64",
+              "sizeBytes",
+              "status"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "capture_pdf",
+      "description": "Render the current page as a PDF.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "pdf",
+        "files"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/capture_pdfInput",
+        "definitions": {
+          "capture_pdfInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "landscape": {
+                "type": "boolean",
+                "default": false
+              },
+              "printBackground": {
+                "type": "boolean",
+                "default": false
+              },
+              "scale": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "default": 1
+              },
+              "paperWidth": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "default": 8.5
+              },
+              "paperHeight": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "default": 11
+              },
+              "marginTop": {
+                "type": "number",
+                "minimum": 0,
+                "default": 0.4
+              },
+              "marginBottom": {
+                "type": "number",
+                "minimum": 0,
+                "default": 0.4
+              },
+              "marginLeft": {
+                "type": "number",
+                "minimum": 0,
+                "default": 0.4
+              },
+              "marginRight": {
+                "type": "number",
+                "minimum": 0,
+                "default": 0.4
+              },
+              "pageRanges": {
+                "type": "string"
+              },
+              "preferCSSPageSize": {
+                "type": "boolean",
+                "default": false
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 15000
+              },
+              "maxBytes": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "default": 10000000
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/capture_pdfOutput",
+        "definitions": {
+          "capture_pdfOutput": {
+            "type": "object",
+            "properties": {
+              "mimeType": {
+                "type": "string",
+                "const": "application/pdf"
+              },
+              "base64": {
+                "type": "string"
+              },
+              "sizeBytes": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "too_large"
+                ]
+              }
+            },
+            "required": [
+              "mimeType",
+              "base64",
+              "sizeBytes",
+              "status"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "capture_screenshot",
+      "description": "Capture a screenshot of the visible tab viewport.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "screenshot"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/capture_screenshotInput",
+        "definitions": {
+          "capture_screenshotInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "format": {
+                "type": "string",
+                "enum": [
+                  "png",
+                  "jpeg"
+                ],
+                "default": "png"
+              },
+              "quality": {
+                "type": "integer",
+                "minimum": 1,
+                "maximum": 100,
+                "default": 90
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/capture_screenshotOutput",
+        "definitions": {
+          "capture_screenshotOutput": {
+            "type": "object",
+            "properties": {
+              "mimeType": {
+                "type": "string"
+              },
+              "base64": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "mimeType",
+              "base64"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "get_console_logs",
+      "description": "Return captured console logs from a page.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "console",
+        "diagnostics"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/get_console_logsInput",
+        "definitions": {
+          "get_console_logsInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "limit": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 200,
+                "default": 100
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/get_console_logsOutput",
+        "definitions": {
+          "get_console_logsOutput": {
+            "type": "object",
+            "properties": {
+              "entries": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "level": {
+                      "type": "string",
+                      "enum": [
+                        "log",
+                        "info",
+                        "warn",
+                        "error",
+                        "debug"
+                      ]
+                    },
+                    "text": {
+                      "type": "string"
+                    },
+                    "timestamp": {
+                      "type": "integer"
+                    }
+                  },
+                  "required": [
+                    "level",
+                    "text",
+                    "timestamp"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "entries"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "network_log",
+      "description": "Capture a short network activity log from a page.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "network",
+        "diagnostics"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/network_logInput",
+        "definitions": {
+          "network_logInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "durationMs": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "default": 1500
+              },
+              "maxEntries": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 500,
+                "default": 100
+              },
+              "includeBodies": {
+                "type": "boolean",
+                "default": false
+              },
+              "reloadFirst": {
+                "type": "boolean",
+                "default": false
+              },
+              "urlIncludes": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/network_logOutput",
+        "definitions": {
+          "network_logOutput": {
+            "type": "object",
+            "properties": {
+              "entries": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "requestId": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "method": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "integer"
+                    },
+                    "statusText": {
+                      "type": "string"
+                    },
+                    "mimeType": {
+                      "type": "string"
+                    },
+                    "fromCache": {
+                      "type": "boolean"
+                    },
+                    "failed": {
+                      "type": "boolean"
+                    },
+                    "errorText": {
+                      "type": "string"
+                    },
+                    "encodedDataLength": {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    "bodyBase64": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "requestId",
+                    "url",
+                    "method"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "entries"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "cookie_access",
+      "description": "Read cookies visible to the extension for a target URL or tab.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "cookies",
+        "diagnostics"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/cookie_accessInput",
+        "definitions": {
+          "cookie_accessInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "domain": {
+                "type": "string",
+                "minLength": 1
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "secure": {
+                "type": "boolean"
+              },
+              "session": {
+                "type": "boolean"
+              },
+              "storeId": {
+                "type": "string"
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/cookie_accessOutput",
+        "definitions": {
+          "cookie_accessOutput": {
+            "type": "object",
+            "properties": {
+              "cookies": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    },
+                    "domain": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "secure": {
+                      "type": "boolean"
+                    },
+                    "httpOnly": {
+                      "type": "boolean"
+                    },
+                    "session": {
+                      "type": "boolean"
+                    },
+                    "sameSite": {
+                      "type": "string"
+                    },
+                    "storeId": {
+                      "type": "string"
+                    },
+                    "expirationDate": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "value",
+                    "domain",
+                    "path",
+                    "secure",
+                    "httpOnly",
+                    "session",
+                    "sameSite",
+                    "storeId"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "cookies"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "request_intercept",
+      "description": "Configure tab-scoped request interception rules.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "network",
+        "intercept"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/request_interceptInput",
+        "definitions": {
+          "request_interceptInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              },
+              "urlPattern": {
+                "type": "string",
+                "minLength": 1
+              },
+              "resourceTypes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "Document",
+                    "Stylesheet",
+                    "Image",
+                    "Media",
+                    "Font",
+                    "Script",
+                    "TextTrack",
+                    "XHR",
+                    "Fetch",
+                    "Prefetch",
+                    "EventSource",
+                    "WebSocket",
+                    "Manifest",
+                    "SignedExchange",
+                    "Ping",
+                    "CSPViolationReport",
+                    "Preflight",
+                    "Other"
+                  ]
+                },
+                "minItems": 1
+              },
+              "action": {
+                "type": "string",
+                "enum": [
+                  "continue",
+                  "fail"
+                ],
+                "default": "continue"
+              },
+              "failReason": {
+                "type": "string",
+                "enum": [
+                  "Failed",
+                  "Aborted",
+                  "TimedOut",
+                  "AccessDenied",
+                  "ConnectionClosed",
+                  "ConnectionReset",
+                  "ConnectionRefused",
+                  "ConnectionAborted",
+                  "ConnectionFailed",
+                  "NameNotResolved",
+                  "InternetDisconnected",
+                  "AddressUnreachable",
+                  "BlockedByClient",
+                  "BlockedByResponse"
+                ],
+                "default": "BlockedByClient"
+              },
+              "method": {
+                "type": "string",
+                "minLength": 1
+              },
+              "headers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "postDataBase64": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/request_interceptOutput",
+        "definitions": {
+          "request_interceptOutput": {
+            "type": "object",
+            "properties": {
+              "configured": {
+                "type": "boolean"
+              },
+              "activeRules": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "configured",
+              "activeRules"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "mock_response",
+      "description": "Configure tab-scoped mocked network responses.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "network",
+        "intercept"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/mock_responseInput",
+        "definitions": {
+          "mock_responseInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              },
+              "urlPattern": {
+                "type": "string",
+                "minLength": 1
+              },
+              "resourceTypes": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "Document",
+                    "Stylesheet",
+                    "Image",
+                    "Media",
+                    "Font",
+                    "Script",
+                    "TextTrack",
+                    "XHR",
+                    "Fetch",
+                    "Prefetch",
+                    "EventSource",
+                    "WebSocket",
+                    "Manifest",
+                    "SignedExchange",
+                    "Ping",
+                    "CSPViolationReport",
+                    "Preflight",
+                    "Other"
+                  ]
+                },
+                "minItems": 1
+              },
+              "statusCode": {
+                "type": "integer",
+                "minimum": 100,
+                "maximum": 599,
+                "default": 200
+              },
+              "headers": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                },
+                "default": []
+              },
+              "bodyText": {
+                "type": "string"
+              },
+              "bodyBase64": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/mock_responseOutput",
+        "definitions": {
+          "mock_responseOutput": {
+            "type": "object",
+            "properties": {
+              "configured": {
+                "type": "boolean"
+              },
+              "activeRules": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "configured",
+              "activeRules"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "throttle_network",
+      "description": "Apply or clear network throttling for a tab.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "network",
+        "timing"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/throttle_networkInput",
+        "definitions": {
+          "throttle_networkInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              },
+              "offline": {
+                "type": "boolean",
+                "default": false
+              },
+              "latencyMs": {
+                "type": "number",
+                "minimum": 0,
+                "default": 0
+              },
+              "downloadThroughput": {
+                "type": "number",
+                "minimum": 0,
+                "default": -1
+              },
+              "uploadThroughput": {
+                "type": "number",
+                "minimum": 0,
+                "default": -1
+              },
+              "connectionType": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "cellular2g",
+                  "cellular3g",
+                  "cellular4g",
+                  "bluetooth",
+                  "ethernet",
+                  "wifi",
+                  "wimax",
+                  "other"
+                ]
+              }
+            },
+            "required": [
+              "tabId",
+              "downloadThroughput",
+              "uploadThroughput"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/throttle_networkOutput",
+        "definitions": {
+          "throttle_networkOutput": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "offline": {
+                "type": "boolean"
+              },
+              "latencyMs": {
+                "type": "number",
+                "minimum": 0
+              },
+              "downloadThroughput": {
+                "type": "number"
+              },
+              "uploadThroughput": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "enabled",
+              "offline",
+              "latencyMs",
+              "downloadThroughput",
+              "uploadThroughput"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "clear_storage",
+      "description": "Clear cookies and web storage for a tab origin.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "storage",
+        "cookies"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/clear_storageInput",
+        "definitions": {
+          "clear_storageInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "clearCookies": {
+                "type": "boolean",
+                "default": true
+              },
+              "clearLocalStorage": {
+                "type": "boolean",
+                "default": true
+              },
+              "clearSessionStorage": {
+                "type": "boolean",
+                "default": true
+              },
+              "clearIndexedDb": {
+                "type": "boolean",
+                "default": true
+              },
+              "clearCacheStorage": {
+                "type": "boolean",
+                "default": true
+              },
+              "clearServiceWorkers": {
+                "type": "boolean",
+                "default": false
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/clear_storageOutput",
+        "definitions": {
+          "clear_storageOutput": {
+            "type": "object",
+            "properties": {
+              "origin": {
+                "type": "string"
+              },
+              "clearedCookies": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "clearedStorageTypes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "localStorageCleared": {
+                "type": "boolean"
+              },
+              "sessionStorageCleared": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "origin",
+              "clearedCookies",
+              "clearedStorageTypes",
+              "localStorageCleared",
+              "sessionStorageCleared"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "session_export",
+      "description": "Export cookies and web storage for a tab session.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "storage",
+        "cookies",
+        "content"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/session_exportInput",
+        "definitions": {
+          "session_exportInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "includeCookies": {
+                "type": "boolean",
+                "default": true
+              },
+              "includeLocalStorage": {
+                "type": "boolean",
+                "default": true
+              },
+              "includeSessionStorage": {
+                "type": "boolean",
+                "default": true
+              },
+              "includeHtml": {
+                "type": "boolean",
+                "default": false
+              },
+              "maxHtmlChars": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "default": 20000
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/session_exportOutput",
+        "definitions": {
+          "session_exportOutput": {
+            "type": "object",
+            "properties": {
+              "url": {
+                "type": "string"
+              },
+              "title": {
+                "type": "string"
+              },
+              "cookies": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string"
+                    },
+                    "value": {
+                      "type": "string"
+                    },
+                    "domain": {
+                      "type": "string"
+                    },
+                    "path": {
+                      "type": "string"
+                    },
+                    "secure": {
+                      "type": "boolean"
+                    },
+                    "httpOnly": {
+                      "type": "boolean"
+                    },
+                    "session": {
+                      "type": "boolean"
+                    },
+                    "sameSite": {
+                      "type": "string"
+                    },
+                    "storeId": {
+                      "type": "string"
+                    },
+                    "expirationDate": {
+                      "type": "number"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "value",
+                    "domain",
+                    "path",
+                    "secure",
+                    "httpOnly",
+                    "session",
+                    "sameSite",
+                    "storeId"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "localStorage": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "sessionStorage": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                }
+              },
+              "historyLength": {
+                "type": "integer",
+                "minimum": 0
+              },
+              "html": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "url",
+              "title",
+              "cookies",
+              "localStorage",
+              "sessionStorage",
+              "historyLength"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "set_user_agent",
+      "description": "Apply or clear a tab-scoped user agent override.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "network",
+        "emulation"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/set_user_agentInput",
+        "definitions": {
+          "set_user_agentInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              },
+              "userAgent": {
+                "type": "string",
+                "minLength": 1
+              },
+              "acceptLanguage": {
+                "type": "string",
+                "minLength": 1
+              },
+              "platform": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/set_user_agentOutput",
+        "definitions": {
+          "set_user_agentOutput": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "userAgent": {
+                "type": "string"
+              },
+              "acceptLanguage": {
+                "type": "string"
+              },
+              "platform": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "enabled",
+              "userAgent"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "emulate_media",
+      "description": "Apply or clear tab-scoped media emulation.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "emulation",
+        "css"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/emulate_mediaInput",
+        "definitions": {
+          "emulate_mediaInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "enabled": {
+                "type": "boolean",
+                "default": true
+              },
+              "media": {
+                "type": "string",
+                "default": "screen"
+              },
+              "features": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "value": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "name",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                },
+                "maxItems": 10,
+                "default": []
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/emulate_mediaOutput",
+        "definitions": {
+          "emulate_mediaOutput": {
+            "type": "object",
+            "properties": {
+              "enabled": {
+                "type": "boolean"
+              },
+              "media": {
+                "type": "string"
+              },
+              "featureCount": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "enabled",
+              "media",
+              "featureCount"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "grant_permissions",
+      "description": "Grant or reset site permissions for a page origin.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "permissions"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/grant_permissionsInput",
+        "definitions": {
+          "grant_permissionsInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "url": {
+                "type": "string",
+                "format": "uri"
+              },
+              "permissions": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "geolocation",
+                    "notifications",
+                    "microphone",
+                    "camera"
+                  ]
+                },
+                "minItems": 1
+              },
+              "setting": {
+                "type": "string",
+                "enum": [
+                  "allow",
+                  "block",
+                  "ask"
+                ],
+                "default": "allow"
+              }
+            },
+            "required": [
+              "permissions"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/grant_permissionsOutput",
+        "definitions": {
+          "grant_permissionsOutput": {
+            "type": "object",
+            "properties": {
+              "origin": {
+                "type": "string"
+              },
+              "setting": {
+                "type": "string",
+                "enum": [
+                  "allow",
+                  "block",
+                  "ask"
+                ]
+              },
+              "appliedPermissions": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "enum": [
+                    "geolocation",
+                    "notifications",
+                    "microphone",
+                    "camera"
+                  ]
+                }
+              }
+            },
+            "required": [
+              "origin",
+              "setting",
+              "appliedPermissions"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "har_export",
+      "description": "Capture a HAR-formatted network trace from a page.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "network",
+        "diagnostics",
+        "files"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/har_exportInput",
+        "definitions": {
+          "har_exportInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "durationMs": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "default": 1500
+              },
+              "reloadFirst": {
+                "type": "boolean",
+                "default": false
+              },
+              "includeBodies": {
+                "type": "boolean",
+                "default": false
+              },
+              "maxEntries": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 500,
+                "default": 100
+              },
+              "urlIncludes": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/har_exportOutput",
+        "definitions": {
+          "har_exportOutput": {
+            "type": "object",
+            "properties": {
+              "mimeType": {
+                "type": "string",
+                "const": "application/json"
+              },
+              "harJson": {
+                "type": "string"
+              },
+              "entryCount": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "required": [
+              "mimeType",
+              "harJson",
+              "entryCount"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "wait_for_idle",
+      "description": "Wait for a page to become mutation-idle for a target interval.",
+      "mutationLevel": "read",
+      "capabilities": [
+        "timing",
+        "dom"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/wait_for_idleInput",
+        "definitions": {
+          "wait_for_idleInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "idleMs": {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "default": 500
+              },
+              "timeoutMs": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 10000
+              }
+            },
+            "required": [
+              "tabId"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/wait_for_idleOutput",
+        "definitions": {
+          "wait_for_idleOutput": {
+            "type": "object",
+            "properties": {
+              "idle": {
+                "type": "boolean"
+              },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "ok",
+                  "timeout"
+                ]
+              }
+            },
+            "required": [
+              "idle",
+              "status"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    },
+    {
+      "name": "execute_javascript",
+      "description": "Execute JavaScript in the tab context and return a serialized result.",
+      "mutationLevel": "write",
+      "capabilities": [
+        "dom",
+        "javascript"
+      ],
+      "inputSchema": {
+        "$ref": "#/definitions/execute_javascriptInput",
+        "definitions": {
+          "execute_javascriptInput": {
+            "type": "object",
+            "properties": {
+              "tabId": {
+                "type": "integer"
+              },
+              "code": {
+                "type": "string",
+                "minLength": 1
+              },
+              "world": {
+                "type": "string",
+                "enum": [
+                  "isolated",
+                  "main"
+                ],
+                "default": "isolated"
+              },
+              "awaitPromise": {
+                "type": "boolean",
+                "default": true
+              }
+            },
+            "required": [
+              "tabId",
+              "code"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      },
+      "outputSchema": {
+        "$ref": "#/definitions/execute_javascriptOutput",
+        "definitions": {
+          "execute_javascriptOutput": {
+            "type": "object",
+            "properties": {
+              "resultType": {
+                "type": "string"
+              },
+              "resultJson": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "resultType",
+              "resultJson"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "$schema": "http://json-schema.org/draft-07/schema#"
+      }
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "name": "@brave-mcp/mcp",
+  "version": "0.10.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npm run build -w @brave-mcp/protocol && npm run build -w @brave-mcp/sdk && npm run build -w @brave-mcp/daemon && tsc -p tsconfig.json",
+    "verify": "npm run build && node dist/verify.js"
+  },
+  "dependencies": {
+    "@brave-mcp/protocol": "file:../../packages/protocol",
+    "@brave-mcp/sdk": "file:../../packages/sdk",
+    "@modelcontextprotocol/sdk": "^1.27.1",
+    "zod-to-json-schema": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.14",
+    "typescript": "^5.8.2"
+  }
+}

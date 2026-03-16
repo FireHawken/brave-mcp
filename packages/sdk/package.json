@@ -1,0 +1,23 @@
+{
+  "name": "@brave-mcp/sdk",
+  "version": "0.10.0",
+  "private": true,
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "npm run build -w @brave-mcp/protocol && tsc -p tsconfig.json"
+  },
+  "dependencies": {
+    "@brave-mcp/protocol": "file:../protocol",
+    "ws": "^8.18.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.14",
+    "@types/ws": "^8.5.14",
+    "typescript": "^5.8.2"
+  }
+}
