@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 set -eu
 
-echo "brave-mcp installer is not implemented yet."
-echo "See docs/implementation-blueprint.md for the planned flow."
+SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)
 
+exec node "$SCRIPT_DIR/brave-mcp-install.mjs" "$@"

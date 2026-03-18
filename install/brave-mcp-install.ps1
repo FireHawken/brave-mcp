@@ -1,3 +1,6 @@
-Write-Host "brave-mcp installer is not implemented yet."
-Write-Host "See docs/implementation-blueprint.md for the planned flow."
+$ErrorActionPreference = "Stop"
 
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+& node (Join-Path $scriptDir "brave-mcp-install.mjs") @args
+exit $LASTEXITCODE

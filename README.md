@@ -30,6 +30,10 @@ With `brave-mcp`, Codex can:
 
 This repo contains both the implementation and the machine-readable contracts for that tool surface.
 
+## Getting Started
+
+Build the workspace, start the local daemon, then load the unpacked extension from `apps/extension/dist` in `brave://extensions` and configure it with `ws://127.0.0.1:39200/extension/connect` plus the pairing secret written to `daemon-config.json`. Once the extension is connected, register the MCP server in Codex with `codex mcp add brave-mcp --env BRAVE_MCP_CONFIG_DIR=/tmp/brave-mcp-smoke -- node /absolute/path/to/apps/mcp/dist/index.js`, start a fresh Codex session, and use the Brave tools from there. For the full step-by-step flow, see [docs/local-install.md](docs/local-install.md).
+
 ## Demo Shape
 
 The intended interaction model is simple:
@@ -275,6 +279,16 @@ Package-level notes:
 - npm or pnpm
 - Brave browser
 - Codex CLI with MCP support
+
+### Repo-Local Installer
+
+For the current local-repo flow, you can let the installer build the artifacts, create the daemon config, register Codex, and open Brave for extension setup:
+
+```sh
+./install/brave-mcp-install.sh
+```
+
+See [install/README.md](install/README.md) for flags and the PowerShell entrypoint.
 
 ### Build Everything
 

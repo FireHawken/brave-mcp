@@ -4,17 +4,31 @@ Installer and packaging area.
 
 Current state:
 
-- shell and PowerShell installer placeholders exist
-- local development launcher exists as `npm run launch:brave`
-- the public installer flow is designed but not yet implemented
+- `brave-mcp-install.sh`
+- `brave-mcp-install.ps1`
+- `brave-mcp-install.mjs`
 
-Target installer behavior:
+These scripts implement the current repo-local install flow. They build the local artifacts, create or reuse the daemon config directory, start the daemon, register the Codex MCP server, run a health check, and try to open `brave://extensions` so the unpacked extension can be loaded.
 
-- download release artifacts
-- create config directory
-- initialize the daemon secret
-- register the Codex MCP server
-- run a health check
-- open the extension install flow
+Example usage:
 
-Repair and re-pair flows should be part of the public installer from the start.
+```sh
+./install/brave-mcp-install.sh
+```
+
+```powershell
+powershell -File .\install\brave-mcp-install.ps1
+```
+
+Useful flags:
+
+- `--config-dir <path>` to override the daemon config location
+- `--skip-build` to reuse existing `dist` artifacts
+- `--skip-codex` to avoid writing Codex MCP config
+- `--skip-open` to avoid opening Brave automatically
+- `--repair` to re-run registration and setup guidance for an existing install
+
+Current limitation:
+
+- the installer still targets the local repo build outputs and registers the Node entrypoint in Codex
+- packaged release downloads, OS service registration, and store-based extension distribution are still future work
