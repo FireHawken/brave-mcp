@@ -5,6 +5,7 @@ Installer and packaging area.
 Current state:
 
 - shell and PowerShell installer placeholders exist
+- local development launcher exists as `npm run launch:brave`
 - the public installer flow is designed but not yet implemented
 
 Target installer behavior:

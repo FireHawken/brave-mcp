@@ -11,7 +11,7 @@
   "properties": {
     "version": {
       "type": "string",
-      "const": "0.10.0"
+      "const": "0.11.0"
     },
     "tools": {
       "type": "array",

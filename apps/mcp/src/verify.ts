@@ -55,7 +55,9 @@ import {
 } from "@brave-mcp/protocol";
 import { connectSimulatedExtensionBridge } from "@brave-mcp/sdk";
 
+import { resolveRuntimeConfig } from "./config.js";
 import { DaemonClient } from "./daemon-client.js";
+import { shutdownAutoStartedDaemon } from "./daemon-bootstrap.js";
 import { handleToolCall, implementedTools } from "./tools.js";
 
 function assert(condition: unknown, message: string): asserts condition {
@@ -105,7 +107,45 @@ async function waitForHealth(baseUrl: string): Promise<void> {
   throw new Error("Timed out waiting for the daemon health endpoint");
 }
 
+async function verifyDaemonAutostart(): Promise<void> {
+  const tempConfigDir = await mkdtemp(join(tmpdir(), "brave-mcp-mcp-autostart-"));
+  const port = await getFreePort();
+  const daemonUrl = `http://127.0.0.1:${port}`;
+
+  try {
+    const runtimeConfig = await resolveRuntimeConfig({
+      daemonUrl,
+      configDir: tempConfigDir,
+    });
+
+    assert(
+      runtimeConfig.daemonUrl === daemonUrl,
+      "Expected resolveRuntimeConfig to preserve daemonUrl",
+    );
+    assert(
+      runtimeConfig.authToken.length > 0,
+      "Expected daemon auto-start to produce an auth token",
+    );
+
+    await waitForHealth(daemonUrl);
+
+    const daemonConfigRaw = await readFile(
+      join(tempConfigDir, "daemon-config.json"),
+      "utf8",
+    );
+    const daemonConfig = JSON.parse(daemonConfigRaw) as { secret: string };
+    assert(
+      daemonConfig.secret === runtimeConfig.authToken,
+      "Expected auto-started daemon config to match resolved auth token",
+    );
+  } finally {
+    await shutdownAutoStartedDaemon();
+  }
+}
+
 async function main(): Promise<void> {
+  await verifyDaemonAutostart();
+
   const tempConfigDir = await mkdtemp(join(tmpdir(), "brave-mcp-mcp-"));
   const port = await getFreePort();
   const daemonEntryPath = fileURLToPath(
@@ -429,7 +469,7 @@ async function main(): Promise<void> {
       await handleToolCall(client, "set_user_agent", {
         tabId: (openedTab as { tabId: number }).tabId,
         enabled: true,
-        userAgent: "SimulatedAgent/0.10.0",
+        userAgent: "SimulatedAgent/0.11.0",
       }),
     );
     const emulateMediaResult = emulateMediaOutputSchema.parse(
@@ -458,8 +498,16 @@ async function main(): Promise<void> {
     const executeJavaScriptResult = executeJavaScriptOutputSchema.parse(
       await handleToolCall(client, "execute_javascript", {
         tabId: (openedTab as { tabId: number }).tabId,
-        code: "'hello from execute_javascript'",
+        code: "document.title",
         world: "isolated",
+        awaitPromise: true,
+      }),
+    );
+    const executeJavaScriptMainResult = executeJavaScriptOutputSchema.parse(
+      await handleToolCall(client, "execute_javascript", {
+        tabId: (openedTab as { tabId: number }).tabId,
+        code: "'hello from execute_javascript'",
+        world: "main",
         awaitPromise: true,
       }),
     );
@@ -608,6 +656,21 @@ async function main(): Promise<void> {
     assert(
       executeJavaScriptResult.resultType === "string",
       "Expected execute_javascript result type",
+    );
+    assert(
+      executeJavaScriptResult.resultJson.length > 0 &&
+        !executeJavaScriptResult.resultJson.includes(
+          "Timed out waiting for execute_javascript result.",
+        ),
+      "Expected execute_javascript isolated world to serialize DOM access",
+    );
+    assert(
+      executeJavaScriptMainResult.resultType === "string" &&
+        executeJavaScriptMainResult.resultJson.length > 0 &&
+        !executeJavaScriptMainResult.resultJson.includes(
+          "Timed out waiting for execute_javascript result.",
+        ),
+      "Expected execute_javascript main world to return a serialized result",
     );
     assert(
       typeof elementsFromPointResult.count === "number" &&

@@ -99,7 +99,7 @@ export async function connectSimulatedExtensionBridge(
         JSON.stringify({
               type: "hello",
               browser: "brave",
-              version: "0.10.0",
+              version: "0.11.0",
             }),
       );
       resolve();
@@ -905,7 +905,7 @@ export async function connectSimulatedExtensionBridge(
             userAgent:
               typeof message.params.userAgent === "string"
                 ? message.params.userAgent
-                : "SimulatedAgent/0.10.0",
+                : "SimulatedAgent/0.11.0",
             acceptLanguage:
               typeof message.params.acceptLanguage === "string"
                 ? message.params.acceptLanguage
@@ -964,7 +964,7 @@ export async function connectSimulatedExtensionBridge(
                 version: "1.2",
                 creator: {
                   name: "brave-mcp",
-                  version: "0.10.0",
+                  version: "0.11.0",
                 },
                 entries: [
                   {

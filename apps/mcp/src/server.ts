@@ -18,7 +18,7 @@ export async function createMcpServer(
   const server = new Server(
     {
       name: "brave-mcp",
-      version: "0.10.0",
+      version: "0.11.0",
     },
     {
       capabilities: {

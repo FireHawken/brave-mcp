@@ -8,9 +8,11 @@ import {
 } from "@brave-mcp/protocol";
 
 const DEFAULT_DAEMON_URL = "ws://127.0.0.1:39200/extension/connect";
-const EXTENSION_VERSION = "0.10.0";
+const EXTENSION_VERSION = "0.11.0";
 const RECONNECT_ALARM_NAME = "bridgeReconnect";
 const RECONNECT_DELAY_MINUTES = 0.5;
+// MV3 service workers need periodic websocket traffic to avoid idling out.
+const HEARTBEAT_INTERVAL_MS = 20_000;
 
 type WaitUntil = "load" | "domcontentloaded" | "networkidle";
 type SelectorType = "css" | "xpath" | "text";
@@ -111,6 +113,7 @@ let bridgeState: BridgeState = "disconnected";
 let lastAttemptAt: string | null = null;
 let lastConnectedAt: string | null = null;
 let lastError: string | null = null;
+let heartbeatInterval: ReturnType<typeof setInterval> | null = null;
 const tabAutomationState = new Map<number, TabAutomationState>();
 const defaultBrowserIdentity = {
   userAgent: navigator.userAgent,
@@ -151,6 +154,25 @@ function nowIso(): string {
 
 async function clearReconnectAlarm(): Promise<void> {
   await chrome.alarms.clear(RECONNECT_ALARM_NAME);
+}
+
+function stopHeartbeat(): void {
+  if (heartbeatInterval === null) {
+    return;
+  }
+
+  clearInterval(heartbeatInterval);
+  heartbeatInterval = null;
+}
+
+function startHeartbeat(candidate: WebSocket): void {
+  stopHeartbeat();
+  heartbeatInterval = setInterval(() => {
+    safeSend(candidate, {
+      type: "ping",
+      sentAt: nowIso(),
+    });
+  }, HEARTBEAT_INTERVAL_MS);
 }
 
 async function ensureReconnectAlarm(): Promise<void> {
@@ -2846,18 +2868,30 @@ async function grantPermissions(options: {
       : options.setting === "block"
         ? "denied"
         : "prompt";
+  const appliedPermissions = new Set<
+    "geolocation" | "notifications" | "microphone" | "camera"
+  >();
 
   if (typeof resolved.tabId === "number") {
-    await withDebuggerSession(resolved.tabId, async (_debuggee, sendCommand) => {
-      for (const permission of options.permissions) {
-        await sendCommand("Browser.setPermission", {
-          permission: { name: permission },
-          setting: browserSetting,
-          origin: resolved.origin,
-        });
-      }
-      return {};
-    });
+    try {
+      await withDebuggerSession(resolved.tabId, async (_debuggee, sendCommand) => {
+        for (const permission of options.permissions) {
+          try {
+            await sendCommand("Browser.setPermission", {
+              permission: { name: permission },
+              setting: browserSetting,
+              origin: resolved.origin,
+            });
+            appliedPermissions.add(permission);
+          } catch {
+            // Some Chromium builds do not expose Browser.setPermission.
+          }
+        }
+        return {};
+      });
+    } catch {
+      // If the debugger path is unavailable, continue with content-settings fallback.
+    }
   }
 
   for (const permission of options.permissions) {
@@ -2868,15 +2902,16 @@ async function grantPermissions(options: {
         setting: options.setting,
         scope: "regular",
       });
+      appliedPermissions.add(permission);
     } catch {
-      // Content settings are best-effort; Browser.setPermission is the primary path.
+      // Content settings are also best-effort and may not exist for every permission.
     }
   }
 
   return {
     origin: resolved.origin,
     setting: options.setting,
-    appliedPermissions: options.permissions,
+    appliedPermissions: Array.from(appliedPermissions),
   };
 }
 
@@ -3131,101 +3166,43 @@ async function executeJavaScript(
     awaitPromise: boolean;
   },
 ) {
+  if (options.world === "main") {
+    await ensureConsoleRecorder(tabId);
+  }
+
   const [result] = await chrome.scripting.executeScript({
     target: { tabId },
     ...(options.world === "main" ? { world: "MAIN" as const } : {}),
     func: async (args) => {
-      const resultId = "__braveMcpExecuteResult";
-      const scriptId = "__braveMcpExecuteScript";
-      const deadline = Date.now() + 5_000;
-
-      const existingResult = document.getElementById(resultId);
-      existingResult?.remove();
-      const existingScript = document.getElementById(scriptId);
-      existingScript?.remove();
-
-      const resultNode = document.createElement("script");
-      resultNode.id = resultId;
-      resultNode.type = "application/json";
-      resultNode.dataset.status = "pending";
-      resultNode.textContent = "{}";
-      (document.documentElement || document.head || document.body).appendChild(resultNode);
-
-      const script = document.createElement("script");
-      script.id = scriptId;
-      script.textContent = `
-        (() => {
-          const resultNode = document.getElementById(${JSON.stringify(resultId)});
-          const write = (payload, status = "done") => {
-            if (!resultNode) return;
-            resultNode.dataset.status = status;
-            resultNode.textContent = JSON.stringify(payload);
-          };
-          const serialize = (value) => {
-            try {
-              return JSON.stringify(value);
-            } catch {
-              return JSON.stringify(String(value));
-            }
-          };
-
-          try {
-            const raw = (0, eval)(${JSON.stringify(args.code)});
-            const finalize = (value) => {
-              write({
-                resultType: value === null ? "null" : typeof value,
-                resultJson: serialize(value),
-              });
-            };
-
-            if (${args.awaitPromise ? "true" : "false"} && raw && typeof raw === "object" && "then" in raw) {
-              Promise.resolve(raw).then(finalize).catch((error) => {
-                write({
-                  resultType: "error",
-                  resultJson: serialize(error instanceof Error ? error.message : String(error)),
-                }, "error");
-              });
-            } else {
-              finalize(raw);
-            }
-          } catch (error) {
-            write({
-              resultType: "error",
-              resultJson: serialize(error instanceof Error ? error.message : String(error)),
-            }, "error");
-          }
-        })();
-      `;
-      (document.documentElement || document.head || document.body).appendChild(script);
-      script.remove();
-
-      while (Date.now() <= deadline) {
-        const currentNode = document.getElementById(resultId);
-        if (
-          currentNode?.dataset.status === "done" ||
-          currentNode?.dataset.status === "error"
-        ) {
-          try {
-            const parsed = JSON.parse(currentNode.textContent ?? "{}");
-            currentNode.remove();
-            return parsed;
-          } catch {
-            currentNode.remove();
-            return {
-              resultType: "error",
-              resultJson: JSON.stringify("Failed to parse execute_javascript result."),
-            };
-          }
+      const serialize = (value: unknown) => {
+        try {
+          return JSON.stringify(value);
+        } catch {
+          return JSON.stringify(String(value));
         }
-
-        await new Promise((resolve) => self.setTimeout(resolve, 25));
-      }
-
-      document.getElementById(resultId)?.remove();
-      return {
-        resultType: "error",
-        resultJson: JSON.stringify("Timed out waiting for execute_javascript result."),
       };
+
+      try {
+        const raw = (0, eval)(args.code) as unknown;
+        const shouldAwait =
+          args.awaitPromise &&
+          raw !== null &&
+          (typeof raw === "object" || typeof raw === "function") &&
+          "then" in raw;
+        const resolved = shouldAwait
+          ? await Promise.resolve(raw as PromiseLike<unknown>)
+          : raw;
+
+        return {
+          resultType: resolved === null ? "null" : typeof resolved,
+          resultJson: serialize(resolved),
+        };
+      } catch (error) {
+        return {
+          resultType: "error",
+          resultJson: serialize(error instanceof Error ? error.message : String(error)),
+        };
+      }
     },
     args: [options],
   });
@@ -3277,74 +3254,90 @@ async function captureScreenshot(
   };
 }
 
+async function ensureConsoleRecorder(tabId: number) {
+  await chrome.scripting.executeScript({
+    target: { tabId },
+    world: "MAIN",
+    func: () => {
+      const scriptId = "__braveMcpConsoleRecorderInstall";
+      const dataNodeId = "__braveMcpConsoleRecorderData";
+
+      if (document.getElementById(dataNodeId)) {
+        return { installed: true };
+      }
+
+      const existingScript = document.getElementById(scriptId);
+      if (!existingScript) {
+        const script = document.createElement("script");
+        script.id = scriptId;
+        script.textContent = `
+          (() => {
+            const dataNodeId = "${dataNodeId}";
+            if (document.getElementById(dataNodeId)) return;
+
+            const dataNode = document.createElement("script");
+            dataNode.id = dataNodeId;
+            dataNode.type = "application/json";
+            dataNode.textContent = "[]";
+            (document.documentElement || document.head || document.body).appendChild(dataNode);
+
+            const entries = [];
+            const serialize = (value) => {
+              if (typeof value === "string") return value;
+              try { return JSON.stringify(value); } catch { return String(value); }
+            };
+            const sync = () => {
+              dataNode.textContent = JSON.stringify(entries);
+            };
+            const pushEntry = (level, values) => {
+              entries.push({
+                level,
+                text: values.map(serialize).join(" "),
+                timestamp: Date.now(),
+              });
+              if (entries.length > 500) {
+                entries.splice(0, entries.length - 500);
+              }
+              sync();
+            };
+
+            for (const level of ["log", "info", "warn", "error", "debug"]) {
+              const original = console[level].bind(console);
+              console[level] = (...values) => {
+                pushEntry(level, values);
+                original(...values);
+              };
+            }
+
+            window.addEventListener("error", (event) => {
+              pushEntry("error", [event.message]);
+            });
+            window.addEventListener("unhandledrejection", (event) => {
+              pushEntry("error", [String(event.reason)]);
+            });
+            pushEntry("debug", ["__brave_mcp_console_recorder_installed__"]);
+          })();
+        `;
+        (document.documentElement || document.head || document.body).appendChild(script);
+        script.remove();
+      }
+
+      return { installed: true };
+    },
+  });
+}
+
 async function getConsoleLogs(
   tabId: number,
   limit: number,
 ) {
+  await ensureConsoleRecorder(tabId);
+
   const [result] = await chrome.scripting.executeScript({
     target: { tabId },
     world: "MAIN",
     func: (args) => {
-      const scriptId = "__braveMcpConsoleRecorderInstall";
       const dataNodeId = "__braveMcpConsoleRecorderData";
-
-      if (!document.getElementById(dataNodeId)) {
-        const existingScript = document.getElementById(scriptId);
-        if (!existingScript) {
-          const script = document.createElement("script");
-          script.id = scriptId;
-          script.textContent = `
-            (() => {
-              const dataNodeId = "${dataNodeId}";
-              if (document.getElementById(dataNodeId)) return;
-
-              const dataNode = document.createElement("script");
-              dataNode.id = dataNodeId;
-              dataNode.type = "application/json";
-              dataNode.textContent = "[]";
-              (document.documentElement || document.head || document.body).appendChild(dataNode);
-
-              const entries = [];
-              const serialize = (value) => {
-                if (typeof value === "string") return value;
-                try { return JSON.stringify(value); } catch { return String(value); }
-              };
-              const sync = () => {
-                dataNode.textContent = JSON.stringify(entries);
-              };
-              const pushEntry = (level, values) => {
-                entries.push({
-                  level,
-                  text: values.map(serialize).join(" "),
-                  timestamp: Date.now(),
-                });
-                if (entries.length > 500) {
-                  entries.splice(0, entries.length - 500);
-                }
-                sync();
-              };
-
-              for (const level of ["log", "info", "warn", "error", "debug"]) {
-                const original = console[level].bind(console);
-                console[level] = (...values) => {
-                  pushEntry(level, values);
-                  original(...values);
-                };
-              }
-
-              window.addEventListener("error", (event) => {
-                pushEntry("error", [event.message]);
-              });
-              window.addEventListener("unhandledrejection", (event) => {
-                pushEntry("error", [String(event.reason)]);
-              });
-              pushEntry("debug", ["__brave_mcp_console_recorder_installed__"]);
-            })();
-          `;
-          (document.documentElement || document.head || document.body).appendChild(script);
-          script.remove();
-        }
-      }
 
       const dataNode = document.getElementById(dataNodeId);
       if (!dataNode?.textContent) {
@@ -4272,6 +4265,7 @@ async function markDisconnected(
   settings: ExtensionSettings,
   reason: string | null,
 ): Promise<void> {
+  stopHeartbeat();
   bridgeState = "disconnected";
   lastError = reason;
   await persistBridgeStatus(settings);
@@ -4300,6 +4294,7 @@ async function connectBridge(forceReconnect = false): Promise<void> {
     return;
   }
 
+  stopHeartbeat();
   socket?.close();
   bridgeState = "connecting";
   lastAttemptAt = nowIso();
@@ -4322,6 +4317,7 @@ async function connectBridge(forceReconnect = false): Promise<void> {
       browser: "brave",
       version: EXTENSION_VERSION,
     });
+    startHeartbeat(nextSocket);
     void clearReconnectAlarm();
     void persistBridgeStatus(settings);
   });
@@ -4357,6 +4353,18 @@ async function connectBridge(forceReconnect = false): Promise<void> {
   });
 }
 
+function wakeBridgeOnBrowserActivity(forceReconnect = false): void {
+  if (
+    !forceReconnect &&
+    (bridgeState === "connected" ||
+      (socket !== null && socket.readyState === WebSocket.CONNECTING))
+  ) {
+    return;
+  }
+
+  void connectBridge(forceReconnect);
+}
+
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name !== RECONNECT_ALARM_NAME) {
     return;
@@ -4367,6 +4375,18 @@ chrome.alarms.onAlarm.addListener((alarm) => {
 
 chrome.runtime.onStartup.addListener(() => {
   void connectBridge();
+});
+
+chrome.windows.onCreated.addListener(() => {
+  wakeBridgeOnBrowserActivity();
+});
+
+chrome.windows.onFocusChanged.addListener((windowId) => {
+  if (windowId === chrome.windows.WINDOW_ID_NONE) {
+    return;
+  }
+
+  wakeBridgeOnBrowserActivity();
 });
 
 chrome.debugger.onEvent.addListener((source, method, params) => {
@@ -4396,6 +4416,20 @@ chrome.debugger.onDetach.addListener((source) => {
 
 chrome.tabs.onRemoved.addListener((tabId) => {
   tabAutomationState.delete(tabId);
+});
+
+chrome.tabs.onCreated.addListener(() => {
+  wakeBridgeOnBrowserActivity();
+});
+
+chrome.tabs.onActivated.addListener(() => {
+  wakeBridgeOnBrowserActivity();
+});
+
+chrome.tabs.onUpdated.addListener((_tabId, changeInfo) => {
+  if (changeInfo.status === "loading" || changeInfo.status === "complete") {
+    wakeBridgeOnBrowserActivity();
+  }
 });
 
 chrome.webNavigation.onCompleted.addListener((details) => {

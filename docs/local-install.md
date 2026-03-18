@@ -26,6 +26,12 @@ npm run build:mcp
 node apps/daemon/dist/index.js --port 39200 --config-dir /tmp/brave-mcp-smoke
 ```
 
+Or use the local launcher:
+
+```sh
+npm run launch:brave
+```
+
 The pairing secret is written to:
 
 ```text
@@ -65,7 +71,7 @@ Expected shape:
 ## 5. Register The MCP Server In Codex
 
 ```sh
-codex mcp add brave-smoke --env BRAVE_MCP_CONFIG_DIR=/tmp/brave-mcp-smoke -- node /absolute/path/to/apps/mcp/dist/index.js
+codex mcp add brave-mcp --env BRAVE_MCP_CONFIG_DIR=/tmp/brave-mcp-smoke -- node /absolute/path/to/apps/mcp/dist/index.js
 ```
 
 Then start a fresh Codex session.

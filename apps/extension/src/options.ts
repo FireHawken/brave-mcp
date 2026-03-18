@@ -14,6 +14,12 @@ interface BridgeStatus {
 
 const DEFAULT_DAEMON_URL = "ws://127.0.0.1:39200/extension/connect";
 
+interface QueryOverrides {
+  daemonUrl?: string;
+  authToken?: string;
+  autosave: boolean;
+}
+
 function getStorage(): chrome.storage.StorageArea {
   return chrome.storage.local;
 }
@@ -31,6 +37,19 @@ async function loadSettings(): Promise<ExtensionSettings> {
 
 async function saveSettings(settings: ExtensionSettings): Promise<void> {
   await getStorage().set(settings);
+}
+
+function readQueryOverrides(): QueryOverrides {
+  const params = new URLSearchParams(window.location.search);
+  const daemonUrl = params.get("daemonUrl")?.trim() || undefined;
+  const authToken = params.get("authToken")?.trim() || undefined;
+  const autosaveValue = params.get("autosave")?.trim().toLowerCase();
+
+  return {
+    daemonUrl,
+    authToken,
+    autosave: autosaveValue === "1" || autosaveValue === "true",
+  };
 }
 
 function byId<T extends HTMLElement>(id: string): T {
@@ -85,6 +104,18 @@ async function requestReconnect(): Promise<BridgeStatus> {
   }) as Promise<BridgeStatus>;
 }
 
+async function persistAndReconnect(
+  daemonUrl: string,
+  authToken: string,
+): Promise<BridgeStatus> {
+  await saveSettings({
+    daemonUrl: daemonUrl.trim() || DEFAULT_DAEMON_URL,
+    authToken: authToken.trim(),
+  });
+
+  return requestReconnect();
+}
+
 async function main(): Promise<void> {
   const form = byId<HTMLFormElement>("settings-form");
   const daemonUrlInput = byId<HTMLInputElement>("daemon-url");
@@ -94,19 +125,35 @@ async function main(): Promise<void> {
   const reconnectButton = byId<HTMLButtonElement>("reconnect-button");
 
   const settings = await loadSettings();
-  daemonUrlInput.value = settings.daemonUrl;
-  authTokenInput.value = settings.authToken;
-  bridgeStatus.textContent = renderBridgeStatus(await requestBridgeStatus());
+  const queryOverrides = readQueryOverrides();
+
+  daemonUrlInput.value = queryOverrides.daemonUrl ?? settings.daemonUrl;
+  authTokenInput.value = queryOverrides.authToken ?? settings.authToken;
+
+  let latestStatus: BridgeStatus;
+  if (
+    queryOverrides.autosave &&
+    (queryOverrides.daemonUrl !== undefined ||
+      queryOverrides.authToken !== undefined)
+  ) {
+    latestStatus = await persistAndReconnect(
+      daemonUrlInput.value,
+      authTokenInput.value,
+    );
+    status.textContent = "Saved from launch parameters and reconnect requested.";
+  } else {
+    latestStatus = await requestBridgeStatus();
+  }
+
+  bridgeStatus.textContent = renderBridgeStatus(latestStatus);
 
   form.addEventListener("submit", (event) => {
     event.preventDefault();
     void (async () => {
-      await saveSettings({
-        daemonUrl: daemonUrlInput.value.trim() || DEFAULT_DAEMON_URL,
-        authToken: authTokenInput.value.trim(),
-      });
-
-      const latestStatus = await requestReconnect();
+      const latestStatus = await persistAndReconnect(
+        daemonUrlInput.value,
+        authTokenInput.value,
+      );
       bridgeStatus.textContent = renderBridgeStatus(latestStatus);
       status.textContent = "Saved and reconnect requested.";
     })();

@@ -12,6 +12,11 @@ export const bridgeHelloMessageSchema = z.object({
   version: z.string().min(1),
 });
 
+export const bridgePingMessageSchema = z.object({
+  type: z.literal("ping"),
+  sentAt: z.string().datetime(),
+});
+
 export const bridgeRequestMessageSchema = z.object({
   type: z.literal("request"),
   id: z.string().min(1),
@@ -34,11 +39,12 @@ export const bridgeResponseMessageSchema = z.union([
 
 export const bridgeClientMessageSchema = z.union([
   bridgeHelloMessageSchema,
+  bridgePingMessageSchema,
   bridgeResponseMessageSchema,
 ]);
 
 export type BridgeHelloMessage = z.infer<typeof bridgeHelloMessageSchema>;
+export type BridgePingMessage = z.infer<typeof bridgePingMessageSchema>;
 export type BridgeRequestMessage = z.infer<typeof bridgeRequestMessageSchema>;
 export type BridgeResponseMessage = z.infer<typeof bridgeResponseMessageSchema>;
 export type BridgeClientMessage = z.infer<typeof bridgeClientMessageSchema>;
-

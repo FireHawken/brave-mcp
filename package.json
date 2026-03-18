@@ -1,7 +1,7 @@
 {
   "name": "brave-mcp",
   "private": true,
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "Blueprint and scaffold for controlling Brave from Codex via MCP.",
   "workspaces": [
     "apps/*",
@@ -20,6 +20,7 @@
     "build:extension": "npm run build -w @brave-mcp/extension",
     "verify:extension": "npm run verify -w @brave-mcp/extension",
     "build:mcp": "npm run build -w @brave-mcp/mcp",
-    "verify:mcp": "npm run verify -w @brave-mcp/mcp"
+    "verify:mcp": "npm run verify -w @brave-mcp/mcp",
+    "launch:brave": "node scripts/launch-brave-mcp-dev.mjs"
   }
 }

@@ -1,6 +1,6 @@
 # brave-mcp
 
-![Version](https://img.shields.io/badge/version-0.10.0-1f6feb)
+![Version](https://img.shields.io/badge/version-0.11.0-1f6feb)
 ![Brave](https://img.shields.io/badge/browser-Brave-f97316)
 ![MCP](https://img.shields.io/badge/protocol-MCP-0ea5e9)
 ![TypeScript](https://img.shields.io/badge/language-TypeScript-3178c6)
@@ -126,7 +126,7 @@ The stack is implemented and working as a local development system.
 
 Current public contract:
 
-- version: `0.10.0`
+- version: `0.11.0`
 - tool count: `48`
 - daemon transport: localhost HTTP + WebSocket bridge
 - Codex transport: local MCP server over `stdio`
@@ -292,6 +292,12 @@ npm run build:mcp
 node apps/daemon/dist/index.js --port 39200 --config-dir /tmp/brave-mcp-smoke
 ```
 
+Or let the repo launch the local stack for you:
+
+```sh
+npm run launch:brave
+```
+
 The daemon writes its pairing secret to:
 
 ```text
@@ -313,7 +319,7 @@ Then open the extension options page and configure:
 ### Register The MCP Server In Codex
 
 ```sh
-codex mcp add brave-smoke --env BRAVE_MCP_CONFIG_DIR=/tmp/brave-mcp-smoke -- node /absolute/path/to/apps/mcp/dist/index.js
+codex mcp add brave-mcp --env BRAVE_MCP_CONFIG_DIR=/tmp/brave-mcp-smoke -- node /absolute/path/to/apps/mcp/dist/index.js
 ```
 
 After that, start a fresh Codex session so the updated tool list is visible in the session.
@@ -388,7 +394,7 @@ The design bias here is explicit tools, typed contracts, local visibility, and r
 
 ## What Is Next
 
-The next planned batch after `0.10.0` is tracked in the checklist and currently targets:
+The next planned batch after `0.11.0` is tracked in the checklist and currently targets:
 
 1. `set_timezone`
 2. `cpu_throttle`

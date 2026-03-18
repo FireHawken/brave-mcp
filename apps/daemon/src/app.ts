@@ -150,6 +150,10 @@ export async function createDaemonApp(
           return;
         }
 
+        if (message.type === "ping") {
+          return;
+        }
+
         const pending = pendingRequests.get(message.id);
         if (!pending) {
           return;
@@ -174,7 +178,7 @@ export async function createDaemonApp(
     return {
       ok: true,
       service: "brave-mcp-daemon",
-      version: "0.10.0",
+      version: "0.11.0",
       startedAt: state.startedAt,
       toolCount: toolCatalog.length,
       extensionConnected: state.extensionConnected,

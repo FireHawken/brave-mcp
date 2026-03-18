@@ -4,6 +4,8 @@ import { join, resolve } from "node:path";
 
 import { z } from "zod";
 
+import { ensureDaemonAvailable } from "./daemon-bootstrap.js";
+
 const daemonConfigSchema = z.object({
   version: z.literal(1),
   secret: z.string().min(1),
@@ -31,19 +33,27 @@ export async function resolveRuntimeConfig(
     options.daemonUrl ??
     process.env.BRAVE_MCP_DAEMON_URL ??
     "http://127.0.0.1:39200";
-
-  if (options.authToken ?? process.env.BRAVE_MCP_AUTH_TOKEN) {
-    return {
-      daemonUrl,
-      authToken: options.authToken ?? process.env.BRAVE_MCP_AUTH_TOKEN ?? "",
-    };
-  }
-
   const configDir = resolve(
     options.configDir ??
       process.env.BRAVE_MCP_CONFIG_DIR ??
       defaultConfigDir(),
   );
+  const explicitAuthToken =
+    options.authToken ?? process.env.BRAVE_MCP_AUTH_TOKEN ?? undefined;
+
+  await ensureDaemonAvailable({
+    daemonUrl,
+    configDir,
+    ...(explicitAuthToken ? { authToken: explicitAuthToken } : {}),
+  });
+
+  if (explicitAuthToken) {
+    return {
+      daemonUrl,
+      authToken: explicitAuthToken,
+    };
+  }
+
   const raw = await readFile(join(configDir, "daemon-config.json"), "utf8");
   const parsed = daemonConfigSchema.parse(JSON.parse(raw));
   return {
@@ -51,4 +61,3 @@ export async function resolveRuntimeConfig(
     authToken: parsed.secret,
   };
 }
-

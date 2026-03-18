@@ -672,7 +672,7 @@ async function main(): Promise<void> {
   const setUserAgentJson = (await callRpc("page.setUserAgent", {
     tabId: openTabJson.result?.tabId,
     enabled: true,
-    userAgent: "SimulatedAgent/0.10.0",
+    userAgent: "SimulatedAgent/0.11.0",
   })) as {
     ok: boolean;
     result?: { enabled: boolean; userAgent: string };
@@ -731,7 +731,7 @@ async function main(): Promise<void> {
 
   const executeJson = (await callRpc("page.executeJavaScript", {
     tabId: openTabJson.result?.tabId,
-    code: "'hello from execute'",
+    code: "document.title",
     world: "isolated",
     awaitPromise: true,
   })) as {
@@ -741,8 +741,29 @@ async function main(): Promise<void> {
   assert(executeJson.ok, "page.executeJavaScript should return ok=true");
   assert(
     executeJson.result?.resultType === "string" &&
-      typeof executeJson.result.resultJson === "string",
-    "page.executeJavaScript should return a serialized result",
+      typeof executeJson.result.resultJson === "string" &&
+      executeJson.result.resultJson.length > 0 &&
+      !executeJson.result.resultJson.includes("Timed out waiting for execute_javascript result."),
+    "page.executeJavaScript should serialize isolated-world DOM access",
+  );
+
+  const executeMainJson = (await callRpc("page.executeJavaScript", {
+    tabId: openTabJson.result?.tabId,
+    code: "'hello from execute'",
+    world: "main",
+    awaitPromise: true,
+  })) as {
+    ok: boolean;
+    result?: { resultType: string; resultJson: string };
+  };
+  assert(executeMainJson.ok, "page.executeJavaScript main world should return ok=true");
+  assert(
+    executeMainJson.result?.resultType === "string" &&
+      typeof executeMainJson.result.resultJson === "string" &&
+      !executeMainJson.result.resultJson.includes(
+        "Timed out waiting for execute_javascript result.",
+      ),
+    "page.executeJavaScript main world should return a serialized result",
   );
 
   const closeJson = (await callRpc("tabs.close", {

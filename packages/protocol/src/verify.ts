@@ -64,9 +64,15 @@ assert(errorResponseResult.success, "Sample daemon error response should parse")
 const bridgeHelloResult = bridgeClientMessageSchema.safeParse({
   type: "hello",
   browser: "brave",
-  version: "0.10.0",
+  version: "0.11.0",
 });
 assert(bridgeHelloResult.success, "Sample bridge hello should parse");
+
+const bridgePingResult = bridgeClientMessageSchema.safeParse({
+  type: "ping",
+  sentAt: "2026-03-16T00:00:00.000Z",
+});
+assert(bridgePingResult.success, "Sample bridge ping should parse");
 
 const bridgeRequestResult = bridgeRequestMessageSchema.safeParse({
   type: "request",
@@ -81,7 +87,7 @@ console.log(
     {
       verifiedTools: toolCatalog.length,
       verifiedRpcMethods: requestResult.data.method,
-      verifiedBridgeMessages: ["hello", "request"],
+      verifiedBridgeMessages: ["hello", "ping", "request"],
     },
     null,
     2,
